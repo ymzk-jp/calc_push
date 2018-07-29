@@ -11,6 +11,7 @@ app.use('/', express.static(path.join(__dirname, 'views')));
 app.set('view engine', 'ejs');
 const server = app.listen(PORT, function () {
     console.log('http://localhost:' + server.address().port);
+    console.log('http://localhost:' + server.address().port + '/query?name=Kevin');
 });
 
 app.get('/', (req, res, next) => {
@@ -20,5 +21,11 @@ app.get('/', (req, res, next) => {
 app.get('/hello', (req, res, next) => {
     res.render('pages/message', {
         message: 'hello ejs'
+    });
+});
+
+app.get('/query', (req, res, next) => {
+    res.render('pages/query', {
+        name: req.query.name
     });
 });
