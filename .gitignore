@@ -6,3 +6,4 @@ package-lock.json
 *.dll
 *.log
 *.pdb
+.vs/

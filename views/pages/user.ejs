@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+
     <style>
         .main {
             text-align: center;
@@ -27,19 +28,65 @@
 <body>
     <div class="main">
         <div class="item_a">
-            <button class="item_btn"> A </button>
+            <button class="item_btn" onclick="addCount('A')"> A : <span id="counter_A" class="menber">0</span></button>
         </div>
         <div class="item_b">
-            <button class="item_btn"> B </button>
+            <button class="item_btn" onclick="addCount('B')"> B : <span id="counter_B" class="menber">0</span></button>
         </div>
         <div class="item_c">
-            <button class="item_btn"> C </button>
+            <button class="item_btn" onclick="addCount('C')"> C : <span id="counter_C" class="menber">0</span></button>
         </div>
     </div>
     <div>
-    <% var el_h1 = '<h1>This is h1 title</h1>'; %>
-    <%- el_h1 %>
+        <% var el_h1 = '<h1>This is h1 title</h1>'; %>
+            <%- el_h1 %>
     </div>
+
+    <script>
+
+
+
+    const addCount=(name)=>{
+        let xhr = new XMLHttpRequest();
+        xhr.open('get', 'http://localhost:3000/add/'+name, true);
+        xhr.onload = function(event) {
+            if (xhr.readyState === 4&&xhr.status===200) {
+                    let data = JSON.parse(xhr.responseText);
+                    console.log(data);
+                    document.getElementById('counter_'+name).textContent=data[0].count;
+                } else {
+                    console.log(xhr.statusText);
+                }
+            }
+        xhr.onerror = function(event) {
+            console.log(event.type); // => "error"
+        };
+        xhr.send(null);
+    }
+    
+    const initCount=()=>{
+        let xhr=new XMLHttpRequest();
+        xhr.open('get','http://localhost:3000/select/all',true);
+        xhr.onload=function(event){
+            if(xhr.readyState===4 && xhr.status===200){
+                let data=JSON.parse(xhr.responseText);
+                console.log(data);
+                let menber=document.getElementsByClassName('menber');
+                console.log(menber);
+                data.forEach((v,i)=>{
+                    menber[i].textContent=data[i].count;
+                });
+            }else{
+                console.log(xhr.statusText);
+                }
+            }
+            xhr.onerror=(event)=>{
+                console.log(event.type); //=>"error"
+        }
+        xhr.send(null);
+    }
+    initCount();
+    </script>
 </body>
 
 </html>

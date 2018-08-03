@@ -6,6 +6,9 @@ const path = require('path');
 const mysql = require('mysql2');
 const fetch = require('isomorphic-fetch');
 const PORT = process.env.PORT || 3000;
+const debug = require('debug')('app:server');
+const http = require('http');
+
 
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -25,7 +28,20 @@ const server = app.listen(PORT, function () {
     console.log('http://localhost:' + server.address().port + '/select');
     console.log('http://localhost:' + server.address().port + '/select/1');
     console.log('http://localhost:' + server.address().port + '/select1/1');
+    console.log('http://localhost:' + server.address().port + '/select/all');
+    console.log('http://localhost:' + server.address().port + '/add/A');
 });
+
+
+connection.connect((err) => {
+    if (err) {
+        console.log('Error connecting to Db');
+        return;
+    }
+    console.log('Connection established');
+});
+
+
 
 app.get('/', (req, res, next) => {
     res.render('pages/user');
@@ -57,24 +73,38 @@ app.get('/select', (req, res, next) => {
     res.send('select');
 });
 
-//http://localhost:3000/select/1
+//http://localhost:3000/select/all
 app.get('/select/:id', (req, res, next) => {
-    let query = 'select * from item;'
-    try {
-        connection.query(query, (err, rows, fields) => {
-            res.json(rows);
-            console.log(req.params); //=>{ id: '1' }
-            console.log(typeof req.params); //=> object
-        });
-    } catch (err) {
-        throw err;
+    const target = req.params.id
+    if (target === "all") {
+        let query = 'select * from item;'
+        try {
+            connection.query(query, (err, rows, fields) => {
+                if (err) {
+                    throw err;
+                }
+                res.contentType('application/json');
+                res.json(rows);
+                console.log(rows);
+            });
+        } catch (err) {
+            throw err;
+        }
+    } else {
+        let query = 'select * from item where item = ?;'
+        try {
+            connection.query(query, [target], (err, rows, fields) => {
+                if (err) {
+                    throw err;
+                }
+                res.contentType('application/json');
+                res.json(rows);
+                console.log(rows);
+            });
+        } catch (err) {
+            throw err;
+        }
     }
-    connection.end((err) => {
-        // The connection is terminated gracefully
-        // Ensures all previously enqueued queries are still
-        // before sending a COM_QUIT packet to the MySQL server.
-        console.log(err);
-    });
 });
 
 
@@ -89,30 +119,37 @@ app.get('/select:id/:dd', (req, res, next) => {
     } catch (err) {
         throw err;
     }
-    connection.end((err) => {
-        // The connection is terminated gracefully
-        // Ensures all previously enqueued queries are still
-        // before sending a COM_QUIT packet to the MySQL server.
-        console.log(err);
-    });
 });
 
+
+
+
+//http://localhost:3000/add/A
 app.get('/add/:user', (req, res, next) => {
     let target = req.params.user;
     console.log(target);
-    let query = 'update item set count = count+1 WHERE item = "A";';
+    console.log("AAA");
+    let query = 'update item set count = count+1 WHERE item = ?';
     try {
-        connection.query(query, (err, rows, fields) => {
-            console.log(rows);
-            res.json(rows);
+        connection.query(query, [target], (err, rows, fields) => {
+            let query = 'select * from item where item = ?;';
+            connection.query(query, [target], (err, rows, fields) => {
+                if (err) {
+                    throw err;
+                }
+                res.contentType("application/json");
+                res.json(rows);
+                console.log(JSON.stringify(rows));
+            });
         });
     } catch (err) {
         throw err;
     }
-    connection.end((err) => {
-        // The connection is terminated gracefully
-        // Ensures all previously enqueued queries are still
-        // before sending a COM_QUIT packet to the MySQL server.
-        console.log(err);
-    });
 });
+
+
+
+
+
+// レスポンスが返ってこなくなるのでコメントアウト。ただし、セッションが残ってしまうので将来的に対処する必要がある
+// connection.end();
